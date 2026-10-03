@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sahaara AI — Emergency Assistance</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: #f4f7f5;
+        }
+
+        .agent {
+            transition: 0.25s;
+        }
+
+        .active {
+            border-color: #15803d;
+            background: #f0fdf4;
+        }
+
+        .done {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+    </style>
+</head>
+
+
+<body class="text-slate-800">
+
+    <main class="max-w-6xl mx-auto p-5 md:p-8">
+
+
+        <!-- HEADER -->
+
+        <header class="flex flex-col md:flex-row md:justify-between gap-4 mb-7">
+
+            <div>
+
+                <p class="text-green-700 font-semibold tracking-wide">
+                    PAK ANGELS • COHORT 11
+                </p>
+
+                <h1 class="text-4xl font-extrabold mt-1">
+                    Sahaara AI
+                </h1>
+
+                <p class="text-slate-600 mt-2">
+                    Understand the crisis. Plan the next safe step.
+                </p>
+
+            </div>
+
+
+            <div class="rounded-2xl bg-white border p-4 text-sm shadow-sm">
+
+                <b>Prototype status:</b>
+                Demo-ready
+
+                <br>
+
+                <span class="text-slate-500">
+                    Live Gemini multi-agent workflow
+                </span>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- MAIN GRID -->
+
+        <section class="grid lg:grid-cols-[1fr_1.1fr] gap-6">
+
+
+            <!-- INPUT PANEL -->
+
+            <div class="bg-white rounded-3xl border p-5 shadow-sm">
+
+                <h2 class="text-xl font-bold mb-1">
+                    Describe an emergency
+                </h2>
+
+                <p class="text-sm text-slate-500 mb-4">
+                    Use a fictional scenario for this prototype demo.
+                </p>
+
+
+                <!-- CATEGORY -->
+
+                <label
+                    class="block text-sm font-semibold mb-2"
+                    for="category">
+
+                    Emergency category
+
+                </label>
+
+
+                <select
+                    id="category"
+                    class="w-full border rounded-xl p-3 mb-4">
+
+                    <option>Fire</option>
+
+                    <option>Smoke</option>
+
+                    <option>Bleeding / Injury</option>
+
+                    <option>Unconsciousness</option>
+
+                    <option>Electrical Hazard</option>
+
+                    <option>Trapped Person</option>
+
+                    <option>Other Emergency</option>
+
+                </select>
+
+
+
+                <!-- LOCATION -->
+
+                <label
+                    class="block text-sm font-semibold mb-2"
+                    for="location">
+
+                    Area / city
+
+                </label>
+
+
+                <input
+                    id="location"
+                    class="w-full border rounded-xl p-3 mb-4"
+                    placeholder="e.g. Karachi, Gulshan">
+
+
+
+                <!-- SITUATION -->
+
+                <label
+                    class="block text-sm font-semibold mb-2"
+                    for="scenario">
+
+                    Situation
+
+                </label>
+
+
+                <textarea
+                    id="scenario"
+                    rows="7"
+                    class="w-full border rounded-xl p-3"
+                    placeholder="Example: There is a fire in a room and thick smoke is spreading through the house."></textarea>
+
+
+
+                <!-- BUTTON -->
+
+                <button
+                    id="solve"
+                    class="w-full mt-4 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white font-bold rounded-xl p-3">
+
+                    Analyze with Sahaara AI
+
+                </button>
+
+
+                <!-- NOTICE -->
+
+                <p
+                    id="notice"
+                    class="text-xs text-slate-500 mt-3">
+
+                    Safety note: This is a prototype.
+                    In a real emergency, contact local emergency services first.
+
+                </p>
+
+            </div>
+
+
+
+            <!-- OUTPUT -->
+
+            <div class="space-y-5">
+
+
+                <!-- AGENT ACTIVITY -->
+
+                <div
+                    class="bg-white rounded-3xl border p-5 shadow-sm">
+
+                    <div
+                        class="flex justify-between items-center mb-4">
+
+                        <h2 class="text-xl font-bold">
+                            Agent activity
+                        </h2>
+
+
+                        <span
+                            id="status"
+                            class="text-sm text-slate-500">
+
+                            Waiting for input
+
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="agents"
+                        class="space-y-3">
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- RESULT -->
+
+                <div
+                    class="bg-white rounded-3xl border p-5 shadow-sm">
+
+                    <h2 class="text-xl font-bold mb-3">
+                        Generated action plan
+                    </h2>
+
+
+                    <div
+                        id="result"
+                        class="text-slate-500 text-sm">
+
+                        Your AI-generated structured guidance
+                        will appear here.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- FOOTER -->
+
+        <footer
+            class="text-xs text-slate-500 mt-7">
+
+            Sahaara AI provides preparedness guidance,
+            not guaranteed rescue, diagnosis,
+            or official instructions.
+
+        </footer>
+
+    </main>
+
+
+
+<script>
+
+
+/* =========================================================
+   BACKEND
+========================================================= */
+
+const API_URL =
+    "http://127.0.0.1:8000/analyze";
+
+
+
+/* =========================================================
+   AGENTS
+========================================================= */
+
+const agentNames = [
+
+    "Orchestrator Agent",
+
+    "Situation Analysis Agent",
+
+    "Risk Assessment Agent",
+
+    "Resource Agent",
+
+    "Action Planning Agent",
+
+    "Verification Agent"
+
+];
+
+
+
+const agents =
+    document.getElementById("agents");
+
+const result =
+    document.getElementById("result");
+
+const status =
+    document.getElementById("status");
+
+const solveButton =
+    document.getElementById("solve");
+
+const notice =
+    document.getElementById("notice");
+
+
+
+/* =========================================================
+   RENDER AGENTS
+========================================================= */
+
+function renderAgents(active = -1, done = -1) {
+
+    agents.innerHTML = agentNames
+        .map((name, index) => {
+
+            return `
+
+                <div
+                    class="agent border rounded-2xl p-3 flex items-center gap-3
+                    ${index === active ? "active" : ""}
+                    ${index <= done ? "done" : ""}">
+
+                    <span
+                        class="w-9 h-9 rounded-full bg-green-100
+                        text-green-800 flex items-center
+                        justify-center font-bold">
+
+                        ${
+                            index <= done
+                                ? "✓"
+                                : index + 1
+                        }
+
+                    </span>
+
+
+                    <div>
+
+                        <b>
+                            ${name}
+                        </b>
+
+
+                        <p class="text-xs text-slate-500">
+
+                            ${
+                                index <= done
+                                    ? "Completed"
+                                    : index === active
+                                        ? "Working…"
+                                        : "Queued"
+                            }
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+
+}
+
+
+/* Initial state */
+
+renderAgents();
+
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text ?? "";
+
+    return div.innerHTML;
+
+}
+
+
+
+/* =========================================================
+   ERROR DISPLAY
+========================================================= */
+
+function showError(message) {
+
+    result.innerHTML = `
+
+        <div
+            class="p-4 rounded-xl bg-red-50
+            border border-red-200 text-red-700">
+
+            <b>
+                Unable to analyze the situation.
+            </b>
+
+            <p class="mt-2 text-sm">
+
+                ${escapeHTML(message)}
+
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+
+/* =========================================================
+   ANALYZE
+========================================================= */
+
+solveButton.addEventListener(
+    "click",
+    async () => {
+
+
+        /* INPUT */
+
+        const category =
+            document
+                .getElementById("category")
+                .value;
+
+
+        const location =
+            document
+                .getElementById("location")
+                .value
+                .trim()
+            || "Location not provided";
+
+
+        const scenario =
+            document
+                .getElementById("scenario")
+                .value
+                .trim();
+
+
+
+        /* VALIDATION */
+
+        if (!scenario) {
+
+            notice.textContent =
+                "Please describe the situation first.";
+
+            notice.className =
+                "text-xs text-red-600 mt-3";
+
+            return;
+
+        }
+
+
+
+        /* UI RESET */
+
+        notice.textContent =
+            "Sahaara AI is analyzing the scenario using Gemini.";
+
+        notice.className =
+            "text-xs text-slate-500 mt-3";
+
+
+        solveButton.disabled =
+            true;
+
+
+        solveButton.textContent =
+            "Analyzing with Gemini…";
+
+
+        status.textContent =
+            "Agents are working…";
+
+
+        result.innerHTML = `
+
+            <p class="text-slate-500">
+
+                Gemini is analyzing the emergency scenario…
+
+            </p>
+
+        `;
+
+
+        renderAgents(0, -1);
+
+
+
+        /* =================================================
+           API REQUEST
+        ================================================= */
+
+        const apiRequest =
+            fetch(
+                API_URL,
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body: JSON.stringify({
+
+                        category:
+                            category,
+
+                        location:
+                            location,
+
+                        situation:
+                            scenario
+
+                    })
+
+                }
+            );
+
+
+
+        /* =================================================
+           AGENT ANIMATION
+        ================================================= */
+
+        let currentAgent = 0;
+
+        let animationFinished =
+            false;
+
+
+        const agentTimer =
+            setInterval(
+                () => {
+
+                    if (
+                        !animationFinished &&
+                        currentAgent <
+                            agentNames.length - 1
+                    ) {
+
+                        currentAgent++;
+
+                        renderAgents(
+                            currentAgent,
+                            currentAgent - 1
+                        );
+
+                    }
+
+                },
+                650
+            );
+
+
+
+        /* =================================================
+           WAIT FOR API
+        ================================================= */
+
+        try {
+
+            const response =
+                await apiRequest;
+
+
+            animationFinished =
+                true;
+
+            clearInterval(
+                agentTimer
+            );
+
+
+
+            /* HTTP ERROR */
+
+            if (!response.ok) {
+
+                let errorText =
+                    `Server returned HTTP ${response.status}`;
+
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+
+                    if (errorData.detail) {
+
+                        errorText =
+                            errorData.detail;
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    console.error(error);
+
+                }
+
+
+                throw new Error(
+                    errorText
+                );
+
+            }
+
+
+
+            /* RESPONSE */
+
+            const data =
+                await response.json();
+
+
+
+            /* COMPLETE AGENTS */
+
+            renderAgents(
+                -1,
+                agentNames.length - 1
+            );
+
+
+
+            /* =================================================
+               RISK COLOR
+            ================================================= */
+
+            const risk =
+                (
+                    data.risk_level
+                    ||
+                    "Needs assessment"
+                ).toLowerCase();
+
+
+            let riskClass =
+                "bg-amber-100 text-amber-800";
+
+
+            if (
+                risk.includes("critical") ||
+                risk.includes("high")
+            ) {
+
+                riskClass =
+                    "bg-red-100 text-red-700";
+
+            }
+
+            else if (
+                risk.includes("medium")
+            ) {
+
+                riskClass =
+                    "bg-orange-100 text-orange-700";
+
+            }
+
+            else if (
+                risk.includes("low")
+            ) {
+
+                riskClass =
+                    "bg-green-100 text-green-700";
+
+            }
+
+
+
+            /* =================================================
+               ACTION PLAN
+            ================================================= */
+
+            const actionPlan =
+                Array.isArray(
+                    data.action_plan
+                )
+                    ? data.action_plan
+                    : [];
+
+
+            const actionHTML =
+                actionPlan.length
+
+                    ?
+
+                `
+
+                    <ol
+                        class="list-decimal ml-5 space-y-2">
+
+                        ${
+                            actionPlan
+                                .map(
+                                    step => `
+                                        <li>
+                                            ${escapeHTML(step)}
+                                        </li>
+                                    `
+                                )
+                                .join("")
+                        }
+
+                    </ol>
+
+                `
+
+                    :
+
+                `
+
+                    <p>
+                        No structured action plan was returned.
+                    </p>
+
+                `;
+
+
+
+            /* =================================================
+               AGENT TRACE
+            ================================================= */
+
+            const agentTrace =
+                Array.isArray(
+                    data.agent_trace
+                )
+                    ? data.agent_trace
+                    : [];
+
+
+            const agentHTML =
+                agentTrace.length
+
+                    ?
+
+                `
+
+                    <div class="mt-5">
+
+                        <p class="font-semibold mb-2">
+
+                            AI agent analysis
+
+                        </p>
+
+
+                        <div class="space-y-2">
+
+                            ${
+                                agentTrace
+                                    .map(
+                                        agent => `
+
+                                            <div
+                                                class="p-3 rounded-xl
+                                                bg-slate-50 border">
+
+                                                <p
+                                                    class="font-semibold
+                                                    text-sm">
+
+                                                    ${escapeHTML(
+                                                        agent.agent
+                                                    )}
+
+                                                </p>
+
+
+                                                <p
+                                                    class="text-xs
+                                                    text-slate-600 mt-1">
+
+                                                    ${escapeHTML(
+                                                        agent.output
+                                                    )}
+
+                                                </p>
+
+                                            </div>
+
+                                        `
+                                    )
+                                    .join("")
+                            }
+
+                        </div>
+
+                    </div>
+
+                `
+
+                    :
+
+                "";
+
+
+
+            /* =================================================
+               FINAL RESULT
+            ================================================= */
+
+            result.innerHTML = `
+
+                <div
+                    class="flex flex-wrap gap-2 mb-4">
+
+
+                    <span
+                        class="px-3 py-1 rounded-full
+                        text-sm font-bold ${riskClass}">
+
+                        ${escapeHTML(
+                            data.risk_level
+                        )}
+
+                    </span>
+
+
+                    <span
+                        class="px-3 py-1 rounded-full
+                        bg-slate-100 text-sm">
+
+                        ${escapeHTML(
+                            data.risk_category
+                            || category
+                        )}
+
+                    </span>
+
+
+                    <span
+                        class="px-3 py-1 rounded-full
+                        bg-slate-100 text-sm">
+
+                        ${escapeHTML(
+                            location
+                        )}
+
+                    </span>
+
+
+                    <span
+                        class="px-3 py-1 rounded-full
+                        bg-slate-100 text-sm">
+
+                        Confidence:
+                        ${escapeHTML(
+                            data.confidence
+                        )}%
+
+                    </span>
+
+                </div>
+
+
+
+                <p class="font-semibold mb-1">
+
+                    Situation summary
+
+                </p>
+
+
+                <p class="text-sm mb-4">
+
+                    ${escapeHTML(
+                        data.summary
+                    )}
+
+                </p>
+
+
+
+                <p class="font-semibold mb-2">
+
+                    Immediate action checklist
+
+                </p>
+
+
+                ${actionHTML}
+
+
+                ${agentHTML}
+
+
+
+                <div
+                    class="mt-5 p-3 rounded-xl
+                    bg-green-50 border border-green-200
+                    text-sm">
+
+                    <b>
+                        Safety guidance:
+                    </b>
+
+                    ${escapeHTML(
+                        data.safety_note
+                    )}
+
+                </div>
+
+
+
+                <div
+                    class="mt-3 p-3 rounded-xl
+                    bg-amber-50 border border-amber-200
+                    text-sm">
+
+                    <b>
+                        Verification:
+                    </b>
+
+                    ${escapeHTML(
+                        data.verification_note
+                    )}
+
+                </div>
+
+            `;
+
+
+
+            /* SUCCESS */
+
+            status.textContent =
+                "Workflow completed";
+
+
+            notice.textContent =
+                "Analysis completed using the Sahaara AI Gemini backend.";
+
+
+            notice.className =
+                "text-xs text-green-700 mt-3";
+
+        }
+
+
+
+        /* =================================================
+           ERROR
+        ================================================= */
+
+        catch (error) {
+
+            console.error(
+                "Sahaara AI Error:",
+                error
+            );
+
+
+            animationFinished =
+                true;
+
+
+            clearInterval(
+                agentTimer
+            );
+
+
+            renderAgents();
+
+
+            status.textContent =
+                "Analysis failed";
+
+
+            showError(
+                error.message
+                ||
+                "Could not connect to the Sahaara AI backend."
+            );
+
+
+            notice.textContent =
+                "Make sure the Python backend is running on http://127.0.0.1:8000";
+
+
+            notice.className =
+                "text-xs text-red-600 mt-3";
+
+        }
+
+
+
+        /* =================================================
+           FINALLY
+        ================================================= */
+
+        finally {
+
+            animationFinished =
+                true;
+
+
+            clearInterval(
+                agentTimer
+            );
+
+
+            solveButton.disabled =
+                false;
+
+
+            solveButton.textContent =
+                "Analyze with Sahaara AI";
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
